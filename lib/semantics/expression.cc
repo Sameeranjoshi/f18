@@ -147,7 +147,7 @@ public:
     return std::move(actuals_);
   }
   Expr<SomeType> GetAsExpr(std::size_t i) const {
-    return DEREF(actuals_[i].value().UnwrapExpr());
+    return DEREF(actuals_.at(i).value().UnwrapExpr());
   }
   void Analyze(const common::Indirection<parser::Expr> &x) {
     Analyze(x.value());
@@ -158,20 +158,20 @@ public:
   }
   void Analyze(const parser::ActualArgSpec &, bool isSubroutine);
 
-  bool IsIntrinsicRelational(RelationalOperator);
-  bool IsIntrinsicLogical();
-  bool IsIntrinsicNumeric();
-  bool IsIntrinsicConcat();
+  bool IsIntrinsicRelational(RelationalOperator) const;
+  bool IsIntrinsicLogical() const;
+  bool IsIntrinsicNumeric() const;
+  bool IsIntrinsicConcat() const;
 
   // Find and return a user-defined operator for opr or report an error.
-  // `error` is used if there is no such operator.
+  // The provided message is used if there is no such operator.
   MaybeExpr TryDefinedOp(const char *, parser::MessageFixedText &&);
   MaybeExpr TryDefinedOp(RelationalOperator, parser::MessageFixedText &&);
 
 private:
   std::optional<ActualArgument> AnalyzeExpr(const parser::Expr &);
   bool AreConformable() const;
-  const Symbol *FindDefinedOp(const char *);
+  const Symbol *FindDefinedOp(const char *) const;
   std::optional<DynamicType> GetType(std::size_t) const;
   void SayNoMatch(const char *);
   std::string TypeAsFortran(std::size_t);
@@ -2427,7 +2427,7 @@ void ArgumentAnalyzer::Analyze(
   }
 }
 
-bool ArgumentAnalyzer::IsIntrinsicRelational(RelationalOperator opr) {
+bool ArgumentAnalyzer::IsIntrinsicRelational(RelationalOperator opr) const {
   auto cat0{GetType(0)->category()};
   auto cat1{GetType(1)->category()};
   if (!AreConformable()) {
@@ -2442,20 +2442,20 @@ bool ArgumentAnalyzer::IsIntrinsicRelational(RelationalOperator opr) {
   }
 }
 
-bool ArgumentAnalyzer::IsIntrinsicNumeric() {
+bool ArgumentAnalyzer::IsIntrinsicNumeric() const {
   return IsNumericTypeCategory(GetType(0)->category()) &&
       (actuals_.size() == 1 ||
           (AreConformable() && IsNumericTypeCategory(GetType(1)->category())));
 }
 
-bool ArgumentAnalyzer::IsIntrinsicLogical() {
+bool ArgumentAnalyzer::IsIntrinsicLogical() const {
   return GetType(0)->category() == TypeCategory::Logical &&
       (actuals_.size() == 1 ||
           (AreConformable() &&
               GetType(1)->category() == TypeCategory::Logical));
 }
 
-bool ArgumentAnalyzer::IsIntrinsicConcat() {
+bool ArgumentAnalyzer::IsIntrinsicConcat() const {
   return AreConformable() &&
       GetType(0)->category() == TypeCategory::Character &&
       GetType(1)->category() == TypeCategory::Character &&
@@ -2537,7 +2537,7 @@ bool ArgumentAnalyzer::AreConformable() const {
   return evaluate::AreConformable(*actuals_[0], *actuals_[1]);
 }
 
-const Symbol *ArgumentAnalyzer::FindDefinedOp(const char *opr) {
+const Symbol *ArgumentAnalyzer::FindDefinedOp(const char *opr) const {
   const auto &scope{context_.context().FindScope(source_)};
   return scope.FindSymbol(parser::CharBlock{"operator("s + opr + ')'});
 }
@@ -2581,7 +2581,7 @@ std::string ArgumentAnalyzer::TypeAsFortran(std::size_t i) {
             ? "CHARACTER(KIND="s + std::to_string(type->kind()) + ')'
             : ToUpperCase(type->AsFortran());
   } else {
-    return "untyped"s;
+    return "untyped";
   }
 }
 

@@ -153,6 +153,10 @@ inline bool IsAssumedSizeArray(const Symbol &symbol) {
   const auto *details{symbol.detailsIf<ObjectEntityDetails>()};
   return details && details->IsAssumedSize();
 }
+inline bool IsAssumedRankArray(const Symbol &symbol) {
+  const auto *details{symbol.detailsIf<ObjectEntityDetails>()};
+  return details && details->IsAssumedRank();
+}
 bool IsAssumedLengthCharacter(const Symbol &);
 bool IsAssumedLengthCharacterFunction(const Symbol &);
 // Is the symbol modifiable in this scope

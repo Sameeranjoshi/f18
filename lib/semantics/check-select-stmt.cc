@@ -1,4 +1,5 @@
-//==check-select-stmt.cc - Checker for select-case, select-rank, select-type
+//==check-select-stmt.cc - Checker for select-case, select-rank
+//TODO:select-type
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -26,16 +27,15 @@ void SelectStmtChecker::Leave(
   const auto &selectRankStmtSel{
       std::get<parser::Selector>(selectRankStmt.statement.t)};
   // R1149 select-rank-stmt checks
-  // C1150 The selector in a select-rank-stmt shall be the name of an
-  // assumed-rank array.
   if (std::holds_alternative<parser::Expr>(selectRankStmtSel.u)) {
+	  shdkfdlfld
     // TODO:
     // 1.Checks if selector is an expression ex.Rank(a+b)
     //
   } else if (std::holds_alternative<parser::Variable>(selectRankStmtSel.u)) {
     const auto &variable{std::get<parser::Variable>(selectRankStmtSel.u)};
     if (const Symbol * entity{GetLastName(variable).symbol}) {
-      if (!IsAssumedRankArray(*entity)) {
+      if (!IsAssumedRankArray(*entity)) {//C1150
         context_.Say(variable.GetSource(),
             "Selector is not an Assumed-rank array variable"_err_en_US);
       }
@@ -62,7 +62,7 @@ void SelectStmtChecker::Leave(
       } else {
         context_.Say(rankCaseStmt.source,
             "Not more than one of the selectors of select rank statement "
-            "must be default"_err_en_US);
+            "may be default"_err_en_US);
       }
     }  // C1153 At most one RANK (*) select-rank-case-stmt allowed
     else if (std::holds_alternative<parser::Star>(rank.u)) {
@@ -71,10 +71,10 @@ void SelectStmtChecker::Leave(
       } else {
         context_.Say(rankCaseStmt.source,
             "Not more than one of the selectors of select rank statement "
-            "must be '*'"_err_en_US);
+            "may be '*'"_err_en_US);
       }
       if (std::holds_alternative<parser::Expr>(selectRankStmtSel.u)) {
-        // TODO:
+        // TODO:1.Checks if selector is an expression ex.Rank(a+b)
       }
       // C1155 RANK (*) not allowed if the selector has the ALLOCATABLE or
       // POINTER attribute
@@ -90,19 +90,14 @@ void SelectStmtChecker::Leave(
       }
     } else if (const auto &init{
                    std::get_if<parser::ScalarIntConstantExpr>(&rank.u)}) {
-      // C1151 A scalar-int-constant-expr in a select-rank-case-stmt shall be
-      // nonnegative and less than or equal to the maximum possible rank of
-      // selector
       if (const auto val{GetIntValue(*init)}) {
-        if ((*val < 0) || (*val > CFI_MAX_RANK)) {
+        if ((*val < 0) || (*val > CFI_MAX_RANK)) {//C1151
           context_.Say(rankCaseStmt.source,
               "The value of the selector must be "
               "between zero and %d"_err_en_US,
               CFI_MAX_RANK);
         }
-        // C1152 For a given select-rank-construct, same rank value shall not be
-        // specified in more than one select-rankcase-stmt
-        if (std::find(matches.begin(), matches.end(), val) != matches.end()) {
+        if (std::find(matches.begin(), matches.end(), val) != matches.end()) {//C1152
           context_.Say(rankCaseStmt.source,
               "Same rank values not allowed more than once "_err_en_US);
         } else {

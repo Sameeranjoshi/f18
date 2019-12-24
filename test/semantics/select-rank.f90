@@ -10,14 +10,14 @@ program selectRankProg
 implicit none
    ! local variable declaration
    integer, DIMENSION(3) :: array
-
+   integer, DIMENSION(3), pointer :: array1
    call CALL_ME(array)
    call CALL_ME2(array)
    call CALL_ME3(array)
    call CALL_ME4(array)
    call CALL_ME5(array)
    call CALL_ME6(array)
-   call CALL_ME7(array)
+   call CALL_ME7(array1)
    call CALL_ME8(array)
    call CALL_ME9(array)
    contains

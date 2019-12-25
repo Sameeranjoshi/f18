@@ -111,10 +111,11 @@ private:
 };
 
 using StatementSemanticsPass1 = ExprChecker;
-using StatementSemanticsPass2 = SemanticsVisitor<AllocateChecker,
-    ArithmeticIfStmtChecker, AssignmentChecker, CoarrayChecker,
-    DeallocateChecker, DoChecker, IfStmtChecker, IoChecker, NullifyChecker,
-    OmpStructureChecker, PurityChecker, ReturnStmtChecker, SelectStmtChecker, StopChecker>;
+using StatementSemanticsPass2 =
+    SemanticsVisitor<AllocateChecker, ArithmeticIfStmtChecker,
+        AssignmentChecker, CoarrayChecker, DeallocateChecker, DoChecker,
+        IfStmtChecker, IoChecker, NullifyChecker, OmpStructureChecker,
+        PurityChecker, ReturnStmtChecker, SelectStmtChecker, StopChecker>;
 
 static bool PerformStatementSemantics(
     SemanticsContext &context, parser::Program &program) {

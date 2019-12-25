@@ -1,5 +1,5 @@
 //==check-select-stmt.cc - Checker for select-case, select-rank
-//TODO:select-type
+// TODO:select-type
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -32,9 +32,10 @@ void SelectStmtChecker::Leave(
     // TODO:
     // 1.Checks if selector is an expression ex.Rank(a+b)
     //
-  } else if ( const auto *variable{std::get_if<parser::Variable>(&selectRankStmtSel.u)}) {
+  } else if (const auto *variable{
+                 std::get_if<parser::Variable>(&selectRankStmtSel.u)}) {
     if (const Symbol * entity{GetLastName(*variable).symbol}) {
-      if (!IsAssumedRankArray(*entity)) {//C1150
+      if (!IsAssumedRankArray(*entity)) {  // C1150
         context_.Say(variable->GetSource(),
             "Selector is not an Assumed-rank array variable"_err_en_US);
       }
@@ -77,7 +78,8 @@ void SelectStmtChecker::Leave(
       }
       // C1155 RANK (*) not allowed if the selector has the ALLOCATABLE or
       // POINTER attribute
-      else if (const auto *variable{std::get_if<parser::Variable>(&selectRankStmtSel.u)}){
+      else if (const auto *variable{
+                   std::get_if<parser::Variable>(&selectRankStmtSel.u)}) {
         if (const Symbol * entity{GetLastName(*variable).symbol}) {
           if (IsAllocatableOrPointer(*entity)) {
             context_.Say(variable->GetSource(),
@@ -89,13 +91,14 @@ void SelectStmtChecker::Leave(
     } else if (const auto &init{
                    std::get_if<parser::ScalarIntConstantExpr>(&rank.u)}) {
       if (const auto val{GetIntValue(*init)}) {
-        if ((*val < 0) || (*val > CFI_MAX_RANK)) {//C1151
+        if ((*val < 0) || (*val > CFI_MAX_RANK)) {  // C1151
           context_.Say(rankCaseStmt.source,
               "The value of the selector must be "
               "between zero and %d"_err_en_US,
               CFI_MAX_RANK);
         }
-        if (std::find(matches.begin(), matches.end(), val) != matches.end()) {//C1152
+        if (std::find(matches.begin(), matches.end(), val) !=
+            matches.end()) {  // C1152
           context_.Say(rankCaseStmt.source,
               "Same rank values not allowed more than once"_err_en_US);
         } else {

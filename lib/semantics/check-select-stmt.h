@@ -17,7 +17,7 @@ namespace Fortran::semantics {
 class SelectStmtChecker : public virtual BaseChecker {
 public:
   SelectStmtChecker(SemanticsContext &context) : context_{context} {}
-  void Leave(const parser::selectRankConstruct &);
+  void Leave(const parser::SelectRankConstruct &);
 
 private:
   SemanticsContext &context_;

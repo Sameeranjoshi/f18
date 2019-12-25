@@ -6,24 +6,9 @@
 !
 !===------------------------------------------------------------------------===
 
-program selectRankProg
-implicit none
-   ! local variable declaration
-   integer, DIMENSION(3) :: array
-   integer, DIMENSION(3), pointer :: array1
-   call CALL_ME(array)
-   call CALL_ME2(array)
-   call CALL_ME3(array)
-   call CALL_ME4(array)
-   call CALL_ME5(array)
-   call CALL_ME6(array)
-   call CALL_ME7(array1)
-   call CALL_ME8(array)
-   call CALL_ME9(array)
-   contains
-
    !No error expected
    subroutine CALL_ME(x)
+    implicit none
     integer :: x(..)
     SELECT RANK(x)
     RANK (0)
@@ -34,6 +19,7 @@ implicit none
    end
 
    subroutine CALL_ME9(x)
+    implicit none
     integer :: x(..)
     boo: SELECT RANK(x)
     RANK (1+0)
@@ -43,9 +29,10 @@ implicit none
 
    !Error expected
    subroutine CALL_ME2(x)
+    implicit none
     integer :: x(..)
     integer :: y(3)
-    !ERROR: Selector is not an assumed rank array variable
+    !ERROR: Selector is not an Assumed-rank array variable
     SELECT RANK(y)
     RANK (0)
       print *, "PRINT RANK 0"
@@ -55,6 +42,7 @@ implicit none
    end
 
    subroutine CALL_ME3(x)
+    implicit none
     integer :: x(..)
     SELECT RANK(x)
     !ERROR: The value of the selector must be between zero and 15
@@ -64,11 +52,12 @@ implicit none
    end subroutine
 
    subroutine CALL_ME4(x)
+    implicit none
     integer :: x(..)
     SELECT RANK(x)
     RANK DEFAULT
       print *, "ok "
-    !ERROR: Not more than one of the selectors of select rank statement must be default
+    !ERROR: Not more than one of the selectors of select rank statement may be default
     RANK DEFAULT
       print *, "not ok"
     RANK (3)
@@ -77,6 +66,7 @@ implicit none
    end subroutine
 
    subroutine CALL_ME5(x)
+    implicit none
     integer :: x(..)
     SELECT RANK(x)
     RANK (0)
@@ -90,7 +80,8 @@ implicit none
    end subroutine
 
    subroutine CALL_ME6(x)
-    integer :: x(..)    !ASSUMED RANK ARRAY should be a dummy argument for subrotine
+    implicit none
+    integer :: x(..)
     SELECT RANK(x)
     RANK (3)
       print *, "one"
@@ -101,6 +92,7 @@ implicit none
    end subroutine
 
    subroutine CALL_ME7(arg)
+   implicit none
    integer :: i
    integer, dimension(..), pointer :: arg
    !ERROR: RANK (*) cannot be used when selector has pointer or allocatable
@@ -113,16 +105,17 @@ implicit none
    end subroutine
 
    subroutine CALL_ME8(x)
+    implicit none
     integer :: x(..)
     SELECT RANK(x)
     Rank(2)
       print *, "Merry Christmas"
     RANK (*)
       print *, "Happy New Year"
-    !ERROR: Not more than one of the selectors of select rank statementmust be '*'
+    !ERROR: Not more than one of the selectors of select rank statement may be '*'
     RANK (*)
       print *, "Opps!! Wrong"
     END SELECT
    end subroutine
 
-end program selectRankProg
+!end program selectRankProg

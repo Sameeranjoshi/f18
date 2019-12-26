@@ -32,7 +32,7 @@
     implicit none
     integer :: x(..)
     integer :: y(3)
-    !ERROR: Selector is not an Assumed-rank array variable
+    !ERROR: Selector is not an assumed-rank array variable
     SELECT RANK(y)
     RANK (0)
       print *, "PRINT RANK 0"
@@ -57,7 +57,7 @@
     SELECT RANK(x)
     RANK DEFAULT
       print *, "ok "
-    !ERROR: Not more than one of the selectors of select rank statement may be default
+    !ERROR: Not more than one of the selectors of SELECT RANK statement may be default
     RANK DEFAULT
       print *, "not ok"
     RANK (3)
@@ -95,7 +95,7 @@
    implicit none
    integer :: i
    integer, dimension(..), pointer :: arg
-   !ERROR: RANK (*) cannot be used when selector has pointer or allocatable
+   !ERROR: RANK (*) cannot be used when selector is POINTER or ALLOCATABLE
    select RANK(arg)
    RANK (*)
       print *, arg(1:1)
@@ -112,7 +112,7 @@
       print *, "Merry Christmas"
     RANK (*)
       print *, "Happy New Year"
-    !ERROR: Not more than one of the selectors of select rank statement may be '*'
+    !ERROR: Not more than one of the selectors of SELECT RANK statement may be '*'
     RANK (*)
       print *, "Opps!! Wrong"
     END SELECT

@@ -1,4 +1,5 @@
-//==check-select-stmt.cc - Checker for select-case, select-rank
+//==check-select-stmt.cc - Checker for select-rank
+// TODO:select-case
 // TODO:select-type
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.

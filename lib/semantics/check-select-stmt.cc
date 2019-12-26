@@ -1,4 +1,5 @@
-//==check-select-stmt.cc - Checker for select-case, select-rank
+//==check-select-stmt.cc - Checker for select-rank
+// TODO:select-case
 // TODO:select-type
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -9,14 +10,14 @@
 
 #include "check-select-stmt.h"
 #include "tools.h"
-#include "../include/flang/ISO_Fortran_binding.h"
+#include "../common/Fortran.h"
 #include "../parser/message.h"
 #include "../parser/tools.h"
 #include <list>
 #include <optional>
+#include <set>
 #include <tuple>
 #include <variant>
-#include <vector>
 
 namespace Fortran::semantics {
 
@@ -37,7 +38,7 @@ void SelectStmtChecker::Leave(
     if (const Symbol * entity{GetLastName(*variable).symbol}) {
       if (!IsAssumedRankArray(*entity)) {  // C1150
         context_.Say(variable->GetSource(),
-            "Selector is not an Assumed-rank array variable"_err_en_US);
+            "Selector is not an assumed-rank array variable"_err_en_US);
       }
     }
   }
@@ -47,7 +48,7 @@ void SelectStmtChecker::Leave(
       selectRankConstruct.t)};
   bool defaultRankFound{false};
   bool starRankFound{false};
-  std::vector<std::optional<std::int64_t>> matches;
+  std::set<std::optional<std::int64_t>> matches;
 
   for (const auto &rankCase : rankCaseList) {
     const auto &rankCaseStmt{
@@ -61,7 +62,7 @@ void SelectStmtChecker::Leave(
         defaultRankFound = true;
       } else {
         context_.Say(rankCaseStmt.source,
-            "Not more than one of the selectors of select rank statement "
+            "Not more than one of the selectors of SELECT RANK statement "
             "may be default"_err_en_US);
       }
     }  // C1153 At most one RANK (*) select-rank-case-stmt allowed
@@ -70,43 +71,40 @@ void SelectStmtChecker::Leave(
         starRankFound = true;
       } else {
         context_.Say(rankCaseStmt.source,
-            "Not more than one of the selectors of select rank statement "
+            "Not more than one of the selectors of SELECT RANK statement "
             "may be '*'"_err_en_US);
       }
       if (std::holds_alternative<parser::Expr>(selectRankStmtSel.u)) {
         // TODO:1.Checks if selector is an expression ex.Rank(a+b)
-      }
-      // C1155 RANK (*) not allowed if the selector has the ALLOCATABLE or
-      // POINTER attribute
-      else if (const auto *variable{
-                   std::get_if<parser::Variable>(&selectRankStmtSel.u)}) {
+      } else if (const auto *variable{
+                     std::get_if<parser::Variable>(&selectRankStmtSel.u)}) {
+        // C1155 RANK (*) not allowed if the selector has the ALLOCATABLE or
+        // POINTER attribute
         if (const Symbol * entity{GetLastName(*variable).symbol}) {
           if (IsAllocatableOrPointer(*entity)) {
             context_.Say(variable->GetSource(),
-                "RANK (*) cannot be used when selector has "
-                "pointer or allocatable"_err_en_US);
+                "RANK (*) cannot be used when selector is "
+                "POINTER or ALLOCATABLE"_err_en_US);
           }
         }
       }
     } else if (const auto &init{
                    std::get_if<parser::ScalarIntConstantExpr>(&rank.u)}) {
-      if (const auto val{GetIntValue(*init)}) {
-        if ((*val < 0) || (*val > CFI_MAX_RANK)) {  // C1151
+      if (auto val{GetIntValue(*init)}) {
+        if (*val < 0 || *val > Fortran::common::maxRank) {  // C1151
           context_.Say(rankCaseStmt.source,
               "The value of the selector must be "
               "between zero and %d"_err_en_US,
-              CFI_MAX_RANK);
+              Fortran::common::maxRank);
         }
-        if (std::find(matches.begin(), matches.end(), val) !=
-            matches.end()) {  // C1152
+        auto result_pair{matches.insert(val)};
+        if (!result_pair.second) {  // C1152
           context_.Say(rankCaseStmt.source,
               "Same rank values not allowed more than once"_err_en_US);
-        } else {
-          matches.push_back(val);
         }
       }
     }
   }
 }
 
-}  // namespace Fortran::semantics
+}

@@ -48,7 +48,7 @@ void SelectStmtChecker::Leave(
       selectRankConstruct.t)};
   bool defaultRankFound{false};
   bool starRankFound{false};
-  std::set<std::optional<std::int64_t>> matches;
+  std::set<std::int64_t> matches;
 
   for (const auto &rankCase : rankCaseList) {
     const auto &rankCaseStmt{
@@ -97,7 +97,7 @@ void SelectStmtChecker::Leave(
               "between zero and %d"_err_en_US,
               Fortran::common::maxRank);
         }
-        auto result_pair{matches.insert(val)};
+        auto result_pair{matches.insert(*val)};
         if (!result_pair.second) {  // C1152
           context_.Say(rankCaseStmt.source,
               "Same rank values not allowed more than once"_err_en_US);

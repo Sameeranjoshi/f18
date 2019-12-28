@@ -91,19 +91,22 @@ void SelectStmtChecker::Leave(
     } else if (const auto &init{
                    std::get_if<parser::ScalarIntConstantExpr>(&rank.u)}) {
       if (auto val{GetIntValue(*init)}) {
-        if (*val < 0 || *val > Fortran::common::maxRank) {  // C1151
+        if (*val < 0 || *val > common::maxRank) {  // C1151
           context_.Say(rankCaseStmt.source,
               "The value of the selector must be "
               "between zero and %d"_err_en_US,
-              Fortran::common::maxRank);
+              common::maxRank);
         }
-        auto result_pair{matches.insert(*val)};
-        if (!result_pair.second) {  // C1152
+        auto resultPair{matches.insert(*val)};
+        if (!resultPair.second) {  // C1152
           context_.Say(rankCaseStmt.source,
               "Same rank values not allowed more than once"_err_en_US);
         }
       }
     }
+	else{
+		DIE ("Illegal value of selector in SELECT RANK case statement");
+	}
   }
 }
 

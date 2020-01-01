@@ -44,10 +44,6 @@ void SelectStmtChecker::Leave(
               }
             }
           },
-          [](auto &) {
-            common::die("Illegal value of selector in SELECT RANK "
-                        "statement");
-          },
       },
       selectRankStmtSel.u);
   // R1150 select-rank-case-stmt checks
@@ -100,10 +96,6 @@ void SelectStmtChecker::Leave(
                                 "POINTER or ALLOCATABLE"_err_en_US);
                           }
                         }
-                      },
-                      [](auto &) {
-                        common::die("Illegal value of selector in SELECT RANK "
-                                    "statement");
                       },
                   },
                   selectRankStmtSel.u);

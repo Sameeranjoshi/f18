@@ -66,8 +66,7 @@ void SelectStmtChecker::Leave(
               } else {
                 context_.Say(rankCaseStmt.source,
                     "Not more than one of the selectors of SELECT RANK "
-                    "statement "
-                    "may be default"_err_en_US);
+                    "statement may be default"_err_en_US);
               }
             },
             [&](const parser::Star &) {  // C1153
@@ -76,8 +75,7 @@ void SelectStmtChecker::Leave(
               } else {
                 context_.Say(rankCaseStmt.source,
                     "Not more than one of the selectors of SELECT RANK "
-                    "statement "
-                    "may be '*'"_err_en_US);
+                    "statement may be '*'"_err_en_US);
               }
               std::visit(
                   common::visitors{
@@ -114,10 +112,6 @@ void SelectStmtChecker::Leave(
                       "Same rank values not allowed more than once"_err_en_US);
                 }
               }
-            },
-            [](auto &) {
-              common::die("Illegal value of selector in SELECT RANK case "
-                          "statement");
             },
         },
         rank.u);

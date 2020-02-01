@@ -1,12 +1,10 @@
-//==check-select-stmt.cc - Checker for select-rank
-// TODO:select-case
-// TODO:select-type
+//===-- lib/semantics/check-select-stmt.cc --------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-//===--------------------------------------------------------------------------------------===
+//===----------------------------------------------------------------------===//
 
 #include "check-select-stmt.h"
 #include "tools.h"
@@ -29,23 +27,23 @@ void SelectStmtChecker::Leave(
           selectRankConstruct.t)};
   const auto &selectRankStmtSel{
       std::get<parser::Selector>(selectRankStmt.statement.t)};
+
   // R1149 select-rank-stmt checks
-  std::visit(
-      common::visitors{
-          [](const parser::Expr &) {
-            // TODO:1.Checks if selector is an
-            // expression ex.Rank(a+b)
-          },
-          [&](const parser::Variable &variable) {
-            if (const Symbol * entity{GetLastName(variable).symbol}) {
-              if (!IsAssumedRankArray(*entity)) {  // C1150
-                context_.Say(variable.GetSource(),
-                    "Selector is not an assumed-rank array variable"_err_en_US);
-              }
-            }
-          },
-      },
-      selectRankStmtSel.u);
+  const Symbol *saveSelSymbol{nullptr};
+  if (const auto resolvedSel{ResolveSelector(selectRankStmtSel)}) {
+    if (const Symbol * sel{evaluate::UnwrapWholeSymbolDataRef(*resolvedSel)}) {
+      if (!IsAssumedRankArray(*sel)) {
+        context_.Say(parser::FindSourceLocation(selectRankStmtSel),
+            "Selector is not an assumed-rank array variable"_err_en_US);
+      } else {
+        saveSelSymbol = sel;
+      }
+    } else {
+      context_.Say(parser::FindSourceLocation(selectRankStmtSel),
+          "Selector is not an assumed-rank array variable"_err_en_US);
+    }
+  }
+
   // R1150 select-rank-case-stmt checks
   auto &rankCaseList{std::get<std::list<parser::SelectRankConstruct::RankCase>>(
       selectRankConstruct.t)};
@@ -77,26 +75,11 @@ void SelectStmtChecker::Leave(
                     "Not more than one of the selectors of SELECT RANK "
                     "statement may be '*'"_err_en_US);
               }
-              std::visit(
-                  common::visitors{
-                      [](const parser::Expr &) {
-                        // TODO:1.Checks if selector is an
-                        // expression ex.Rank(a+b)
-                      },
-                      [&](const parser::Variable &variable) {
-                        // C1155 RANK (*) not allowed if the selector has the
-                        // ALLOCATABLE or POINTER attribute
-                        if (const Symbol *
-                            entity{GetLastName(variable).symbol}) {
-                          if (IsAllocatableOrPointer(*entity)) {
-                            context_.Say(variable.GetSource(),
-                                "RANK (*) cannot be used when selector is "
-                                "POINTER or ALLOCATABLE"_err_en_US);
-                          }
-                        }
-                      },
-                  },
-                  selectRankStmtSel.u);
+              if (IsAllocatableOrPointer(*saveSelSymbol)) {  // C1155
+                context_.Say(parser::FindSourceLocation(selectRankStmtSel),
+                    "RANK (*) cannot be used when selector is "
+                    "POINTER or ALLOCATABLE"_err_en_US);
+              }
             },
             [&](const parser::ScalarIntConstantExpr &init) {
               if (auto val{GetIntValue(init)}) {
@@ -116,6 +99,16 @@ void SelectStmtChecker::Leave(
         },
         rank.u);
   }
+}
+
+const SomeExpr *SelectStmtChecker::ResolveSelector(
+    const parser::Selector &selector) {
+  return std::visit(
+      common::visitors{
+          [&](const parser::Expr &expr) { return GetExpr(expr); },
+          [&](const parser::Variable &var) { return GetExpr(var); },
+      },
+      selector.u);
 }
 
 }

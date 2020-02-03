@@ -7,11 +7,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "check-select-stmt.h"
-#include "flang/semantics/tools.h"
 #include "flang/common/Fortran.h"
 #include "flang/common/idioms.h"
 #include "flang/parser/message.h"
 #include "flang/parser/tools.h"
+#include "flang/semantics/tools.h"
 #include <list>
 #include <optional>
 #include <set>
